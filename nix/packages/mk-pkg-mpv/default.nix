@@ -103,8 +103,11 @@ pkgs.stdenvNoCC.mkDerivation {
       -Dstdatomic=disabled `# C11 stdatomic.h`
       -Duchardet=disabled `# uchardet support`
       -Duwp=disabled `# Universal Windows Platform`
-      -Dlibass=disabled `# libass subtitle rendering (FLTR-20042 IT-minimal)`
-      -Dlibass-plugin=disabled `# libass plugin (FLTR-20042 IT-minimal)`
+      # NOTE: mpv 0.36 doesn't expose `libass` as a meson feature option.
+      # On the Android sibling fork, passing `-Dlibass=disabled` fails
+      # with "Unknown option". Instead we ensure libass isn't installed
+      # so pkg-config can't find it — see the deleted `libass`
+      # callPackage above. mpv configure auto-skips libass when missing.
       -Dvapoursynth=disabled `# VapourSynth filter bridge`
       -Dvector=disabled `# GCC vector instructions`
       -Dwin32-internal-pthreads=disabled `#internal pthread wrapper for win32 (Vista+)`
