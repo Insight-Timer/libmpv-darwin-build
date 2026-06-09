@@ -51,9 +51,12 @@ let
     cd $src
     patch -p1 <${../../../patches/mpv-fix-missing-objc.patch}
     patch -p1 <${../../../patches/mpv-mix-with-others.patch}
-    if [ "${variant}" == "${variants.audio}" ]; then
-      patch -p1 <${../../../patches/mpv-remove-libass.patch}
-    fi
+    # FLTR-20042 IT-minimal: apply the libass-removal patch for the
+    # video variant too. mpv 0.36's meson.build requires libass as a
+    # hard dependency (no feature option). The patch removes the
+    # dependency declaration + every libass code path in mpv. Tested
+    # path — already used for the audio variant in upstream.
+    patch -p1 <${../../../patches/mpv-remove-libass.patch}
     cd -
 
     cp -r $src $out
