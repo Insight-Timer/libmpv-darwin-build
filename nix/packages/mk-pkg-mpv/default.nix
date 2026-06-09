@@ -24,8 +24,11 @@ let
   crossFile = callPackage ../../utils/cross-file/default.nix { };
   xctoolchainLipo = callPackage ../../utils/xctoolchain/lipo.nix { };
   ffmpeg = callPackage ../mk-pkg-ffmpeg/default.nix { };
-  uchardet = callPackage ../mk-pkg-uchardet/default.nix { };
-  libass = callPackage ../mk-pkg-libass/default.nix { };
+  # FLTR-20042 IT-minimal: uchardet + libass intentionally NOT included.
+  # libmpv is configured with -Dlibass=disabled below; no subtitle stack
+  # needed since the app sets sid=no / activeSubtitleTracks=[]. Removing
+  # them from buildInputs prevents the cascade of freetype + fribidi +
+  # harfbuzz dependencies from getting statically linked into Mpv.framework.
 
   nativeBuildInputs = [
     pkgs.meson
@@ -70,12 +73,7 @@ pkgs.stdenvNoCC.mkDerivation {
   dontUnpack = true;
   enableParallelBuilding = true;
   inherit nativeBuildInputs;
-  buildInputs =
-    [ ffmpeg ]
-    ++ pkgs.lib.optionals (variant == "video") [
-      uchardet
-      libass
-    ];
+  buildInputs = [ ffmpeg ];
   configurePhase = ''
     DISABLE_ALL_OPTIONS=(
       `# booleans`
@@ -105,6 +103,8 @@ pkgs.stdenvNoCC.mkDerivation {
       -Dstdatomic=disabled `# C11 stdatomic.h`
       -Duchardet=disabled `# uchardet support`
       -Duwp=disabled `# Universal Windows Platform`
+      -Dlibass=disabled `# libass subtitle rendering (FLTR-20042 IT-minimal)`
+      -Dlibass-plugin=disabled `# libass plugin (FLTR-20042 IT-minimal)`
       -Dvapoursynth=disabled `# VapourSynth filter bridge`
       -Dvector=disabled `# GCC vector instructions`
       -Dwin32-internal-pthreads=disabled `#internal pthread wrapper for win32 (Vista+)`
@@ -202,8 +202,9 @@ pkgs.stdenvNoCC.mkDerivation {
     )
 
     COMMON_VIDEO_OPTIONS=(
+      # FLTR-20042 IT-minimal: dropped `-Duchardet=enabled` (subtitle
+      # charset detection, irrelevant when libass is disabled).
       `# misc features`
-      -Duchardet=enabled `# uchardet support`
       -Dzlib=enabled `# zlib`
 
       `# video output features`

@@ -73,10 +73,12 @@ pkgs.stdenvNoCC.mkDerivation {
     ++ pkgs.lib.optionals (flavor == flavors.encodersgpl) [
       libvorbis
     ]
-    ++ pkgs.lib.optionals (variant == variants.video) [
-      dav1d
-      libxml2
-    ]
+    # FLTR-20042 IT-minimal: dav1d + libxml2 dropped from default video
+    # variant. The FFmpeg meson.build no longer passes --enable-libdav1d
+    # (AV1 decoder) or --enable-libxml2 (DASH demuxer), so these deps
+    # would build but not be linked. Removing them from buildInputs saves
+    # build time and prevents pkg-config from picking them up by accident.
+    # Encoders-gpl variant still pulls in libvpx + libx264 if used.
     ++ pkgs.lib.optionals (variant == variants.video && flavor == flavors.encodersgpl) [
       libvpx
       libx264
