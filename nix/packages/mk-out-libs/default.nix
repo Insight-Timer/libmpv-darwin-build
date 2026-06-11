@@ -40,17 +40,32 @@ if arch != archs.universal then
     fftoolsFfi = callPackage ../mk-pkg-fftools-ffi/default.nix { };
     libvorbis = callPackage ../mk-pkg-libvorbis/default.nix { };
     libogg = callPackage ../mk-pkg-libogg/default.nix { };
-    dav1d = callPackage ../mk-pkg-dav1d/default.nix { };
-    libxml2 = callPackage ../mk-pkg-libxml2/default.nix { };
-    uchardet = callPackage ../mk-pkg-uchardet/default.nix { };
-    libass = callPackage ../mk-pkg-libass/default.nix { };
-    harfbuzz = callPackage ../mk-pkg-harfbuzz/default.nix { };
-    fribidi = callPackage ../mk-pkg-fribidi/default.nix { };
-    freetype = callPackage ../mk-pkg-freetype/default.nix { };
-    libpng = callPackage ../mk-pkg-libpng/default.nix { };
     libvpx = callPackage ../mk-pkg-libvpx/default.nix { };
     libx264 = callPackage ../mk-pkg-libx264/default.nix { };
 
+    # FLTR-20042 IT-minimal: dropped from the video variant deps list:
+    #   dav1d     — AV1 software decoder. mpv h264/hevc only.
+    #   libxml2   — DASH demuxer support. We're HLS-only.
+    #   uchardet  — subtitle charset detection. No subtitles in IT.
+    #   libass    — subtitle renderer. mpv-remove-libass.patch (already
+    #               applied for the video variant in this fork) strips
+    #               every libass call site from mpv source. Mpv.framework
+    #               compiles without a libass link-time dep.
+    #   harfbuzz  — text shaping engine pulled in by libass. ~5 MB on iOS,
+    #               by far the biggest single win in this trim list.
+    #   fribidi   — bidirectional text for libass.
+    #   freetype  — glyph rasterizer for libass.
+    #   libpng    — thumbnail / snapshot support. mpv builds without it.
+    #
+    # Combined iOS footprint reduction: ~10 MB on ios-universal-video-
+    # default. Verified on the spike: Runner.app went 35.3 MB → 24.5 MB
+    # after manually removing these 8 xcframeworks from the consumer
+    # side. This deps-list change bakes the same trim into every future
+    # CI build so the manual pub-cache mutation isn't required.
+    #
+    # The encoders-gpl flavor still pulls libvpx + libx264 since GPL
+    # encoding is a separate code path that doesn't affect default-flavor
+    # consumers.
     deps =
       [
         mpv
@@ -61,16 +76,6 @@ if arch != archs.universal then
         fftoolsFfi
         libvorbis
         libogg
-      ]
-      ++ pkgs.lib.optionals (variant == variants.video) [
-        dav1d
-        libxml2
-        uchardet
-        libass
-        harfbuzz
-        fribidi
-        freetype
-        libpng
       ]
       ++ pkgs.lib.optionals (variant == variants.video && flavor == flavors.encodersgpl) [
         libvpx
