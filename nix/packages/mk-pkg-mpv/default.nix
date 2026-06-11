@@ -51,6 +51,12 @@ let
     cd $src
     patch -p1 <${../../../patches/mpv-fix-missing-objc.patch}
     patch -p1 <${../../../patches/mpv-mix-with-others.patch}
+    # FLTR-20042: skip mpv's AVAudioSession management so audio_service can
+    # own the session — fixes lock-screen / Control Center now-playing HUD
+    # not showing on iOS. Cherry-pick of media-kit/libmpv-darwin-build#52.
+    # Must apply AFTER mpv-mix-with-others.patch (context overlap on the
+    # setCategory line that mix-with-others introduces).
+    patch -p1 <${../../../patches/mpv-audiounit-skip-session-management.patch}
     # FLTR-20042 IT-minimal: apply the libass-removal patch for the
     # video variant too. mpv 0.36's meson.build requires libass as a
     # hard dependency (no feature option). The patch removes the
