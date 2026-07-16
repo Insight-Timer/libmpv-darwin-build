@@ -1,9 +1,10 @@
 name: ci
 
 on:
+  # Build to validate on PRs, and build + release on tags. The master-push
+  # build was dropped: a PR build already validates the merge result, and the
+  # release tag rebuilds the same commit — so a master-push build was redundant.
   push:
-    branches:
-      - master
     tags:
       - "*"
   pull_request:
