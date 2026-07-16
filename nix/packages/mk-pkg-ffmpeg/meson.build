@@ -74,26 +74,32 @@ video_common_options = [
     '--enable-videotoolbox',
 ]
 
-# IT-minimal audio set (FLTR-20042). Only AAC + AC-3 / E-AC-3 + PCM —
+# IT-minimal audio set (FLTR-20042). AAC + AC-3 / E-AC-3 + PCM + MP3 —
 # everything else stripped. AAC for the universal HLS audio codec,
 # AC-3 / E-AC-3 for Dolby Digital streams, PCM as the tiny safety net.
+# MP3 (FLTR-20495) is required for downloaded tracks: streaming is HLS/AAC,
+# but offline downloads are plain MP3 files, which otherwise fail with
+# "Failed to recognize file format".
 audio_default_options = [
     '--enable-decoder=aac*',
     '--enable-decoder=ac3',
     '--enable-decoder=eac3',
     '--enable-decoder=pcm*',
+    '--enable-decoder=mp3*',
 
     '--enable-parser=aac*',
     '--enable-parser=ac3',
+    '--enable-parser=mpegaudio',
 
     # Demuxers shared by audio + video. `mov` covers mp4/m4a/fMP4
     # segments. `hls` is the master HLS demuxer. `mpegts` covers
     # MPEG-TS HLS segments (BipBop classic, classic IT live). `aac`
-    # covers raw-AAC HLS audio renditions.
+    # covers raw-AAC HLS audio renditions. `mp3` covers downloaded tracks.
     '--enable-demuxer=mov',
     '--enable-demuxer=hls',
     '--enable-demuxer=mpegts',
     '--enable-demuxer=aac',
+    '--enable-demuxer=mp3',
 
     # Protocols: HTTPS over TCP/TLS, HLS, file. No RTMP/RTSP/etc.
     '--enable-protocol=file',
